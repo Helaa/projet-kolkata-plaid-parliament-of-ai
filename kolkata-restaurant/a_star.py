@@ -65,16 +65,15 @@ def a_star (start, target, obtacle, lines=20, cols=20, hereustique = manhattan_d
 def test():
     from itertools import product
     
-    lines = 6
-    rows = 4
-
-    matrix = list(product(range(rows), range(lines)))
+    lines = 4
+    cols = 6
+    # matrix of lines=lines and cols=cols
+    
     start = (2, 0)
     target = (0, 5)
-
     obstacles = [(0,4), (1,4), (2,4)]
 
-    path = a_star (start,target,obstacles, hereustique = manhattan_distance)
+    path = a_star (start,target,obstacles, lines, cols, hereustique = euc_dist)
     print(path)
 
 
