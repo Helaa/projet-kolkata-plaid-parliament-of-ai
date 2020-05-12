@@ -133,32 +133,38 @@ def main():
         print("Player %d starts at %s, chosed the resto number %d located at %s" %(i, posPlayers[i], restau[i], goalStates[restau[i]]))
         print(paths[i])
 
+    players_reached_goal = []
+
     for i in range(iterations):
         for j in range(nbPlayers): # on fait bouger chaque joueur séquentiellement
-            row,col = posPlayers[j]
 
-            next_row, next_col = paths[j].pop(0)
-            # and ((next_row,next_col) not in posPlayers)
-            if ((next_row,next_col) not in wallStates) and next_row>=0 and next_row<=19 and next_col>=0 and next_col<=19:
-                players[j].set_rowcol(next_row,next_col)
-                print ("pos :", j, next_row,next_col)
-                game.mainiteration()
+            if j in players_reached_goal:
+                continue
 
-                #time.sleep(1)
+            else:
+                row,col = posPlayers[j]
+
+                next_row, next_col = paths[j].pop(0)
+                # and ((next_row,next_col) not in posPlayers)
+                if ((next_row,next_col) not in wallStates) and next_row>=0 and next_row<=19 and next_col>=0 and next_col<=19:
+                    players[j].set_rowcol(next_row,next_col)
+                    print ("pos :", j, next_row,next_col)
+                    game.mainiteration()
+
+                    #time.sleep(1)
+                    
+                    col=next_col
+                    row=next_row
+                    posPlayers[j]=(row,col)
                 
-                col=next_col
-                row=next_row
-                posPlayers[j]=(row,col)
-            
-            # si on est à l'emplacement d'un restaurant, on s'arrête
-            if (row,col) == goalStates[restau[j]]:
-                #o = players[j].ramasse(game.layers)
-                game.mainiteration()
-                print ("Le joueur ", j, " est à son restaurant.")
-               # goalStates.remove((row,col)) # on enlève ce goalState de la liste
-                
-                
-                break      
+                # si on est à l'emplacement d'un restaurant, on s'arrête
+                if (row,col) == goalStates[restau[j]]:
+                    #o = players[j].ramasse(game.layers)
+                    game.mainiteration()
+                    print ("Le joueur ", j, " est à son restaurant.")
+                    # goalStates.remove((row,col)) # on enlève ce goalState de la liste
+                    players_reached_goal.append(j)
+                    break      
     
     pygame.quit()
 
