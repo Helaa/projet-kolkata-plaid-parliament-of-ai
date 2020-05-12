@@ -8,7 +8,7 @@ from spritebuilder import SpriteBuilder
 from players import Player
 from sprite import MovingSprite
 from ontology import Ontology
-from itertools import chain
+from itertools import chain, product
 import pygame
 import glo
 
@@ -16,8 +16,7 @@ import random
 import numpy as np
 import sys
 
-
-
+import a_star
     
 # ---- ---- ---- ---- ---- ----
 # ---- Main                ----
@@ -80,8 +79,16 @@ def main():
     #print ("Wall states:", wallStates)
     
     # on liste toutes les positions permises
+    """
+    THIS DOESNT WORK AS EXPECTED
+
     allowedStates = [(x,y) for x in range(nbLignes) for y in range(nbColonnes)\
-                     if (x,y) not in wallStates or  goalStates] 
+                     if (x,y) not in wallStates or goalStates] 
+    """
+    allowedStates = list(product(range(nbLignes), range(nbColonnes)))
+
+    for x,y in set(chain(wallStates, goalStates)):
+        allowedStates.remove((x,y))
     
     #-------------------------------
     # Placement aleatoire des joueurs, en évitant les obstacles
@@ -114,49 +121,46 @@ def main():
     # Boucle principale de déplacements 
     #-------------------------------
     
-        
-    # bon ici on fait juste plusieurs random walker pour exemple...
-    
+    paths = [] # all paths of the players (paths[i] is the path for the player i )
+    for i in range(nbPlayers):
+        paths.append(a_star.a_star(posPlayers[i], goalStates[restau[i]], wallStates, hereustique=a_star.euc_dist))
+        #if goalStates[restau[i]] != paths[i][0]: <------ THIS WILL NEVER HAPPEN
+        paths[i].pop(0) # removing the first position ( it's the starting position for the player i )
+
+    print()
+
+    for i in range(nbPlayers):
+        print("Player %d starts at %s, chosed the resto number %d located at %s" %(i, posPlayers[i], restau[i], goalStates[restau[i]]))
+        print(paths[i])
+
     for i in range(iterations):
-        
         for j in range(nbPlayers): # on fait bouger chaque joueur séquentiellement
             row,col = posPlayers[j]
 
-            x_inc,y_inc = random.choice([(0,1),(0,-1),(1,0),(-1,0)])
-            next_row = row+x_inc
-            next_col = col+y_inc
+            next_row, next_col = paths[j].pop(0)
             # and ((next_row,next_col) not in posPlayers)
             if ((next_row,next_col) not in wallStates) and next_row>=0 and next_row<=19 and next_col>=0 and next_col<=19:
                 players[j].set_rowcol(next_row,next_col)
                 print ("pos :", j, next_row,next_col)
                 game.mainiteration()
-    
+
+                #time.sleep(1)
+                
                 col=next_col
                 row=next_row
                 posPlayers[j]=(row,col)
             
-      
-        
-            
             # si on est à l'emplacement d'un restaurant, on s'arrête
-            if (row,col) == restau[j]:
+            if (row,col) == goalStates[restau[j]]:
                 #o = players[j].ramasse(game.layers)
                 game.mainiteration()
                 print ("Le joueur ", j, " est à son restaurant.")
                # goalStates.remove((row,col)) # on enlève ce goalState de la liste
                 
                 
-                break
-            
+                break      
     
     pygame.quit()
-    
-        
-    
-   
 
 if __name__ == '__main__':
     main()
-    
-
-
