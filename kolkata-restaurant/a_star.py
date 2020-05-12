@@ -32,7 +32,7 @@ def verifiy_position (position, lines, cols):
     return x_pos >= 0 and x_pos < lines and y_pos >= 0 and y_pos < cols
 
 
-def a_star (start, target, obtacle, lines=20, cols=20, hereustique = manhattan_distance):
+def a_star(start, target, obtacle, lines=20, cols=20, hereustique = manhattan_distance):
 
     def get_path(target):
         i = target
@@ -63,15 +63,20 @@ def a_star (start, target, obtacle, lines=20, cols=20, hereustique = manhattan_d
 
 
 def test():
-    from itertools import product
-    
     lines = 4
     cols = 6
     # matrix of lines=lines and cols=cols
-    
-    start = (2, 0)
-    target = (0, 5)
-    obstacles = [(0,4), (1,4), (2,4)]
+
+    start = (9, 11)
+    target = (8, 10)
+    obstacles = [(4, 5), (4, 8), (4, 11), (4, 14), (5, 5), (5, 8), (5, 11), (5, 14),
+                 (6, 5), (6, 8), (6, 11), (6, 14), (7, 5), (7, 8), (7, 11), (7, 14),
+                 (8, 5), (8, 8), (8, 11), (8, 14), (9, 5), (9, 6), (9, 7), (9, 8), 
+                 (9, 9), (9, 10), (9, 11), (9, 12), (9, 13), (9, 14), (10, 5), (10, 6),
+                 (10, 7), (10, 8), (10, 9), (10, 10), (10, 11), (10, 12), (10, 13), (10, 14),
+                 (11, 5), (11, 8), (11, 11), (11, 14), (12, 5), (12, 8), (12, 11), (12, 14),
+                 (13, 5), (13, 8), (13, 11), (13, 14), (14, 5), (14, 8), (14, 11), (14, 14),
+                 (15, 5), (15, 8), (15, 11), (15, 14)]
 
     path = a_star (start,target,obstacles, lines, cols, hereustique = euc_dist)
     print(path)
