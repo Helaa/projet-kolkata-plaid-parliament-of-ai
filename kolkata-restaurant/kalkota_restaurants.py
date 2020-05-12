@@ -78,13 +78,9 @@ def main():
     wallStates = [w.get_rowcol() for w in game.layers['obstacle']]
     #print ("Wall states:", wallStates)
     
-    # on liste toutes les positions permises
-    """
-    THIS DOESNT WORK AS EXPECTED
+    # on liste toutes les positions permises#
 
-    allowedStates = [(x,y) for x in range(nbLignes) for y in range(nbColonnes)\
-                     if (x,y) not in wallStates or goalStates] 
-    """
+
     allowedStates = list(product(range(nbLignes), range(nbColonnes)))
 
     for x,y in set(chain(wallStates, goalStates)):
@@ -107,16 +103,15 @@ def main():
         
         
     
-    #-------------------------------
+    #-------------------------------#
     # chaque joueur choisit un restaurant
-    #-------------------------------
 
-    restau=[0]*nbPlayers
+    restau = [0] * nbPlayers
     for j in range(nbPlayers):
-        c = random.randint(0,nbRestaus-1)
+        c = random.randint(0, nbRestaus - 1)
         print(c)
-        restau[j]=c
-    
+        restau[j] = c
+
     #-------------------------------
     # Boucle principale de déplacements 
     #-------------------------------
