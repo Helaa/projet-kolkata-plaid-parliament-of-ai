@@ -37,7 +37,24 @@ def init(_boardname=None):
     game.mainiteration()
     game.mask.allow_overlaping_players = True
     #player = game.player
-    
+
+def restau_occupation(players, nbRestaus,nbPlayers):
+    restau = [[] for i in range(nbRestaus)]
+    for j in range(nbPlayers):
+        if players[j].reached_goal():
+            restau[players[j].get_target()].append(j)
+    return restau
+
+def gain (restau, nbRestaus, nbPlayers):
+    players_utlity = [0 for i in range(nbPlayers)]
+    for i in range(nbRestaus):
+        if restau[i] != []:
+            j = random.randint(0, len(restau[i]) - 1)
+            players_utlity[restau[i][j]] = 1
+            print("Le joueur", restau[i][j], " a été servis.")
+    print("Occupations des restaurants", restau)
+    print("Players utlity", players_utlity)
+
 def main():
 
     #for arg in sys.argv:
@@ -131,11 +148,14 @@ def main():
                     game.mainiteration()
                     print ("Le joueur ", j, " est à son restaurant.")
                     # goalStates.remove((row,col)) # on enlève ce goalState de la liste
-                    break      
-    
+                    break
+    print("Services:")
+    restau=restau_occupation(players, nbRestaus, nbPlayers) #on recupere les occupations de chaque restau
+    gain(restau, nbRestaus, nbPlayers) # la fonction qui increpmente le gain d'un joueur choisi au hasard par restau
 
-    for j in range(nbPlayers): 
-        print("Player %d reached target ? %s" % (j, players[j].reached_goal()))
+
+
+
     pygame.quit()
 
 if __name__ == '__main__':
