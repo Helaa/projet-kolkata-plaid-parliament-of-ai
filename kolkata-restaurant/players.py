@@ -17,15 +17,20 @@ try:
 except:
     from pygame.draw import circle
 
+from Strategies import *
+import a_star
 
 class Player(MovingSprite):
     """ cette classe modelise un sprite controlable par l'utilisateur
         soit au tile pres, soit au pixel pres
         soit au clavier directement, soit par instructions
     """
-    def __init__(self,*args,**kwargs):
+    def __init__(self, *args,**kwargs):
         MovingSprite.__init__(self,*args,**kwargs)
         self.inventory = pygame.sprite.Group()
+        
+        self.__called_start_method = False
+        self.__called_strategy_method = False
 
     def gen_callbacks(self,incr,gDict,mask):
         transl = self.translate_sprite
@@ -84,7 +89,47 @@ class Player(MovingSprite):
                 layers["eye_candy"].add( DrawOnceSprite( pygame.draw.line , [(255,0,0),(cx,cy),h,4] ) )
         return r
 
+    
+    def set_starting_position(self, starting_position):
+        assert len(starting_position) == 2
+        assert int(starting_position[0]) >= 0 
+        assert int(starting_position[1]) >= 0
+        self.__starting_position = starting_position
+        self.__current_position = starting_position
 
+        self.__called_start_method = True
+
+    def set_strategy(self, strategy : Strategy):
+        assert isinstance(strategy, Strategy)
+
+        self.__strategy = strategy
+        self.__called_strategy_method = True
+
+    def get_target(self):
+        # return destination of this player ( which resto )
+        return self.__strategy.choose_resto()
+
+    def next_step(self, goal_states, wall_states):
+        """
+            @params:
+                goal_states: list or tuple of coords of restos
+                wall_states: list or tuple of coords of walls
+        """
+        if not self.__called_start_method or not self.__called_strategy_method:
+            raise SystemExit("Player need to have a starting position and a strategy.")
+
+        assert len(goal_states) > 0
+        assert len(wall_states) > 0
+        # assuming that lines = cols = 20
+        path = a_star.a_star(self.__current_position, goal_states[self.get_target()], wall_states, hereustique=a_star.euc_dist)
+
+        if len(path) > 0:
+            self.__current_position = path[0]
+            self.set_rowcol(path[0][0], path[0][1])
+            return path[0]
+
+        return self.__current_position
+        
 class Turtle(Player):
     def __init__(self,layername,x,y,w,h):
         self.taille_geometrique, self.penwidth = 22, 1

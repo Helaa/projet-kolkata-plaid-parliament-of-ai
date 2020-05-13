@@ -17,6 +17,7 @@ import numpy as np
 import sys
 
 import a_star
+from Strategies import *
     
 # ---- ---- ---- ---- ---- ----
 # ---- Main                ----
@@ -61,6 +62,7 @@ def main():
     
     
     players = [o for o in game.layers['joueur']]
+    print(type(players[0]))
     nbPlayers = len(players)
     
     
@@ -91,43 +93,23 @@ def main():
     #-------------------------------
         
     posPlayers = initStates
-
     
     for j in range(nbPlayers):
         x,y = random.choice(allowedStates)
+        players[j].set_starting_position((x,y))
+        players[j].set_strategy(StubbornStrategy(nbRestaus))
+
         players[j].set_rowcol(x,y)
         game.mainiteration()
         posPlayers[j]=(x,y)
 
-
-        
-        
-    
-    #-------------------------------#
-    # chaque joueur choisit un restaurant
-
-    restau = [0] * nbPlayers
-    for j in range(nbPlayers):
-        c = random.randint(0, nbRestaus - 1)
-        print(c)
-        restau[j] = c
+    # #-------------------------------#
+    # # chaque joueur choisit un restaurant
+    # replaced by set_strategy() above
 
     #-------------------------------
     # Boucle principale de déplacements 
     #-------------------------------
-    
-    paths = [] # all paths of the players (paths[i] is the path for the player i )
-    for i in range(nbPlayers):
-        paths.append(a_star.a_star(posPlayers[i], goalStates[restau[i]], wallStates, hereustique=a_star.euc_dist))
-        #if goalStates[restau[i]] != paths[i][0]: <------ THIS WILL NEVER HAPPEN
-        paths[i].pop(0) # removing the first position ( it's the starting position for the player i )
-
-    print()
-
-    for i in range(nbPlayers):
-        print("Player %d starts at %s, chosed the resto number %d located at %s" %(i, posPlayers[i], restau[i], goalStates[restau[i]]))
-        print(paths[i])
-
     players_reached_goal = []
 
     for i in range(iterations):
@@ -137,23 +119,11 @@ def main():
                 continue
 
             else:
-                row,col = posPlayers[j]
-
-                next_row, next_col = paths[j].pop(0)
-                # and ((next_row,next_col) not in posPlayers)
-                if ((next_row,next_col) not in wallStates) and next_row>=0 and next_row<=19 and next_col>=0 and next_col<=19:
-                    players[j].set_rowcol(next_row,next_col)
-                    print ("pos :", j, next_row,next_col)
-                    game.mainiteration()
-
-                    #time.sleep(1)
-                    
-                    col=next_col
-                    row=next_row
-                    posPlayers[j]=(row,col)
-                
+                row, col = players[j].next_step(goalStates, wallStates)
+                game.mainiteration()
                 # si on est à l'emplacement d'un restaurant, on s'arrête
-                if (row,col) == goalStates[restau[j]]:
+                
+                if (row,col) == goalStates[players[j].get_target()]:
                     #o = players[j].ramasse(game.layers)
                     game.mainiteration()
                     print ("Le joueur ", j, " est à son restaurant.")
