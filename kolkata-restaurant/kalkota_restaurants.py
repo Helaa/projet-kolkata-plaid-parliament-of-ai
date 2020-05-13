@@ -18,6 +18,7 @@ import sys
 
 import a_star
 from Strategies import *
+from AdaptedPlayer import AdaptedPlayer
     
 # ---- ---- ---- ---- ---- ----
 # ---- Main                ----
@@ -47,11 +48,6 @@ def main():
     print (iterations)
 
     init()
-    
-    
-    
-
-    
     #-------------------------------
     # Initialisation
     #-------------------------------
@@ -62,7 +58,6 @@ def main():
     
     
     players = [o for o in game.layers['joueur']]
-    print(type(players[0]))
     nbPlayers = len(players)
     
     
@@ -94,14 +89,23 @@ def main():
         
     posPlayers = initStates
     
+    # Converting players to AdaptedPlayers 
+
     for j in range(nbPlayers):
         x,y = random.choice(allowedStates)
-        players[j].set_starting_position((x,y))
-        players[j].set_strategy(StubbornStrategy(nbRestaus))
+        players[j] = AdaptedPlayer(players[j], (x, y), NRS(nbRestaus), goalStates, wallStates)
 
-        players[j].set_rowcol(x,y)
         game.mainiteration()
         posPlayers[j]=(x,y)
+
+    # for j in range(nbPlayers//2, nbPlayers):
+    #     x,y = random.choice(allowedStates)
+    #     players[j].set_starting_position((x,y))
+    #     players[j].set_strategy(RandomStrategy(nbRestaus))
+
+    #     players[j].set_rowcol(x,y)
+    #     game.mainiteration()
+    #     posPlayers[j]=(x,y)
 
     # #-------------------------------#
     # # chaque joueur choisit un restaurant
@@ -110,27 +114,28 @@ def main():
     #-------------------------------
     # Boucle principale de déplacements 
     #-------------------------------
-    players_reached_goal = []
-
+    
     for i in range(iterations):
         for j in range(nbPlayers): # on fait bouger chaque joueur séquentiellement
 
-            if j in players_reached_goal:
+            if players[j].reached_goal():
                 continue
 
             else:
-                row, col = players[j].next_step(goalStates, wallStates)
+                #print("Player %d (strategy = %s) is going to %d" % (j, players[j].get_strategy(),players[j].get_target()))
+                row, col = players[j].next_step() # nbLignes = nbColonnes = 20
                 game.mainiteration()
-                # si on est à l'emplacement d'un restaurant, on s'arrête
                 
-                if (row,col) == goalStates[players[j].get_target()]:
+                if players[j].reached_goal():
                     #o = players[j].ramasse(game.layers)
                     game.mainiteration()
                     print ("Le joueur ", j, " est à son restaurant.")
                     # goalStates.remove((row,col)) # on enlève ce goalState de la liste
-                    players_reached_goal.append(j)
                     break      
     
+
+    for j in range(nbPlayers): 
+        print("Player %d reached target ? %s" % (j, players[j].reached_goal()))
     pygame.quit()
 
 if __name__ == '__main__':
