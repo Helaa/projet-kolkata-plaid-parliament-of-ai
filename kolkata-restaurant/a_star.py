@@ -41,6 +41,8 @@ def a_star(start, target, obtacle, lines=20, cols=20, hereustique = manhattan_di
             i = visited[i][1]
             path.append(i)
         path.reverse()
+
+        path.pop(0)
         return path
 
 
