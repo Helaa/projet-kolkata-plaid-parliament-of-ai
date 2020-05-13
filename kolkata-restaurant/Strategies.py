@@ -90,3 +90,30 @@ class NRS(Strategy):
     
     def __repr__(self) -> str:
         return self.__str__() + " Number of Restos is " + str(self.number_of_resto)
+
+class LOR(Strategy):
+    #Less occupation Res
+    def __init__(self, resto: int):
+        super().__init__(resto)
+        self.__chosed_resto = randrange(0, self.number_of_resto)  # choice in [0, number_of_resto[
+
+    def choose_resto(self, current_player_pos, goalStates, distance=a_star.euc_dist) -> int:
+        """
+            @params:
+                current_player_pos: player's coord in the map ( list or tuple )
+                goalStates: list of all restos coords (list of tuples or lists)
+
+            returns the less occupation restaurant
+        """
+        assert len(current_player_pos) == 2
+        assert len(goalStates) > 0
+        # need to check each coord, but let's just assume that all is well for now.
+
+
+
+        return
+
+    def __str__(self) -> str:
+        return "Less Occupation Resto Strategy"
+
+
