@@ -31,6 +31,7 @@ class Player(MovingSprite):
         
         self.__called_start_method = False
         self.__called_strategy_method = False
+        self.__reached_target = False
 
     def gen_callbacks(self,incr,gDict,mask):
         transl = self.translate_sprite
@@ -105,11 +106,23 @@ class Player(MovingSprite):
         self.__strategy = strategy
         self.__called_strategy_method = True
 
-    def get_target(self):
+    def get_strategy(self) -> Strategy:
+        return self.__strategy
+
+    def get_target(self, goalStates=None):
         # return destination of this player ( which resto )
+        if isinstance(self.__strategy, NRS):
+            if not self.__called_start_method:
+                raise SystemExit("This player needs to know his starting pos to use this strategy")
+
+            if goalStates is None:
+                raise SystemExit("This player needs to know all coords of restos to choose the nearest one")
+
+            return self.__strategy.choose_resto(self.__current_position, goalStates)
+
         return self.__strategy.choose_resto()
 
-    def next_step(self, goal_states, wall_states):
+    def next_step(self, goal_states, wall_states, nbLignes=20, nbColonnes=20):
         """
             @params:
                 goal_states: list or tuple of coords of restos
@@ -120,15 +133,28 @@ class Player(MovingSprite):
 
         assert len(goal_states) > 0
         assert len(wall_states) > 0
-        # assuming that lines = cols = 20
-        path = a_star.a_star(self.__current_position, goal_states[self.get_target()], wall_states, hereustique=a_star.euc_dist)
+
+        if isinstance(self.__strategy, NRS):
+            path = a_star.a_star(self.__current_position, goal_states[self.get_target(goal_states)], wall_states, \
+                            nbLignes, nbColonnes, hereustique=a_star.euc_dist)
+        else:
+            path = a_star.a_star(self.__current_position, goal_states[self.get_target()], wall_states, \
+                            nbLignes, nbColonnes, hereustique=a_star.euc_dist)
 
         if len(path) > 0:
             self.__current_position = path[0]
             self.set_rowcol(path[0][0], path[0][1])
+
+            if self.__current_position == goal_states[self.get_target()]:
+                self.__reached_target = True
+
             return path[0]
 
         return self.__current_position
+
+    def reached_goal(self) -> bool:
+        # Has this player reached his target ?
+        return self.__reached_target
         
 class Turtle(Player):
     def __init__(self,layername,x,y,w,h):
