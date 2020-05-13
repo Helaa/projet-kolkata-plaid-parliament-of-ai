@@ -17,13 +17,12 @@ try:
 except:
     from pygame.draw import circle
 
-
 class Player(MovingSprite):
     """ cette classe modelise un sprite controlable par l'utilisateur
         soit au tile pres, soit au pixel pres
         soit au clavier directement, soit par instructions
     """
-    def __init__(self,*args,**kwargs):
+    def __init__(self, *args,**kwargs):
         MovingSprite.__init__(self,*args,**kwargs)
         self.inventory = pygame.sprite.Group()
 
@@ -83,8 +82,7 @@ class Player(MovingSprite):
             for h in r:
                 layers["eye_candy"].add( DrawOnceSprite( pygame.draw.line , [(255,0,0),(cx,cy),h,4] ) )
         return r
-
-
+        
 class Turtle(Player):
     def __init__(self,layername,x,y,w,h):
         self.taille_geometrique, self.penwidth = 22, 1
