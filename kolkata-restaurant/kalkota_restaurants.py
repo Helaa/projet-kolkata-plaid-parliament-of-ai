@@ -18,7 +18,8 @@ import sys
 
 import a_star
 from Strategies import *
-from AdaptedPlayer import AdaptedPlayer
+from AdaptedPlayer import *
+from Restaurant import *
     
 # ---- ---- ---- ---- ---- ----
 # ---- Main                ----
@@ -37,23 +38,6 @@ def init(_boardname=None):
     game.mainiteration()
     game.mask.allow_overlaping_players = True
     #player = game.player
-
-def restau_occupation(players, nbRestaus,nbPlayers):
-    restau = [[] for i in range(nbRestaus)]
-    for j in range(nbPlayers):
-        if players[j].reached_goal():
-            restau[players[j].get_target()].append(j)
-    return restau
-
-def gain (restau, nbRestaus, nbPlayers):
-    players_utlity = [0 for i in range(nbPlayers)]
-    for i in range(nbRestaus):
-        if restau[i] != []:
-            j = random.randint(0, len(restau[i]) - 1)
-            players_utlity[restau[i][j]] = 1
-            print("Le joueur", restau[i][j], " a été servis.")
-    print("Occupations des restaurants", restau)
-    print("Players utlity", players_utlity)
 
 def main():
 
@@ -80,21 +64,20 @@ def main():
     
     # on localise tous les états initiaux (loc du joueur)
     initStates = [o.get_rowcol() for o in game.layers['joueur']]
-    print ("Init states:", initStates)
-    
     
     # on localise tous les objets  ramassables (les restaurants)
     goalStates = [o.get_rowcol() for o in game.layers['ramassable']]
-    print ("Goal states:", goalStates)
-    nbRestaus = len(goalStates)
+    restaurants = [Restaurant(coord) for coord in goalStates]
+    nbRestaus = len(restaurants)
+
+    # constructing restoDictionnary to speed up searching in the main loop
+    # keys are coords, and values are restaurants objects
+    restoDict = dict(zip(goalStates, restaurants))
         
     # on localise tous les murs
     wallStates = [w.get_rowcol() for w in game.layers['obstacle']]
-    #print ("Wall states:", wallStates)
     
     # on liste toutes les positions permises#
-
-
     allowedStates = list(product(range(nbLignes), range(nbColonnes)))
 
     for x,y in set(chain(wallStates, goalStates)):
@@ -106,25 +89,16 @@ def main():
         
     posPlayers = initStates
     
-    # Converting players to AdaptedPlayers 
+    # Converting players to AdaptedPlayers and creating one Strategy object  
+    nearestStrategy = LOR(restaurants)
 
     for j in range(nbPlayers):
         x,y = random.choice(allowedStates)
-        players[j] = AdaptedPlayer(players[j], (x, y), NRS(nbRestaus), goalStates, wallStates)
+        players[j] = AdaptedPlayer(players[j], (x, y), nearestStrategy, goalStates, wallStates)
 
         game.mainiteration()
         posPlayers[j]=(x,y)
 
-    # for j in range(nbPlayers//2, nbPlayers):
-    #     x,y = random.choice(allowedStates)
-    #     players[j].set_starting_position((x,y))
-    #     players[j].set_strategy(RandomStrategy(nbRestaus))
-
-    #     players[j].set_rowcol(x,y)
-    #     game.mainiteration()
-    #     posPlayers[j]=(x,y)
-
-    # #-------------------------------#
     # # chaque joueur choisit un restaurant
     # replaced by set_strategy() above
 
@@ -146,15 +120,28 @@ def main():
                 if players[j].reached_goal():
                     #o = players[j].ramasse(game.layers)
                     game.mainiteration()
-                    print ("Le joueur ", j, " est à son restaurant.")
                     # goalStates.remove((row,col)) # on enlève ce goalState de la liste
+
+                    # add the current player to the correspong restaurant located at (row, col)
+                    restoDict[(row, col)].add_client(players[j])
+                    print ("Le joueur ", j, " est à ", restoDict[(row, col)])
+
                     break
-    print("Services:")
-    restau=restau_occupation(players, nbRestaus, nbPlayers) #on recupere les occupations de chaque restau
-    gain(restau, nbRestaus, nbPlayers) # la fonction qui increpmente le gain d'un joueur choisi au hasard par restau
 
+    for resto in restaurants:
+        try:
+            resto.random_serve()
+            print(resto, end = ' ')
+            print("has %d clients but served only the %s" %(len(resto.get_clients()),\
+                                     resto.get_served_client()))
+        except AlreadyServedException:
+            print(resto, end = ' ')
+            print(" already served a client")
 
-
+    for player in players:
+        if player.ate():
+            print(player, end = ' ')
+            print(" has eaten ")
 
     pygame.quit()
 
