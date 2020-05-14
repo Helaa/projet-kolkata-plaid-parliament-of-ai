@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from random import randrange
-
+import math
+import numpy as np
 from Restaurant import *
 import a_star
 
@@ -130,3 +131,19 @@ class LOR(NRS):
 
     def __repr__(self) -> str:
         return self.__str__() + " Number of Restos is " + str(self._number_of_resto)
+""""
+class StocasticChoice(Strategy):
+
+    def choose_resto(self, current_player_pos=None, distance=a_star.euc_dist) -> Restaurant:
+        z=0
+        for i in range(self._number_of_resto):
+            # Z is the factor of choice in Stochastic agent
+            z += math.exp(-occupation[i])
+
+        p = []
+        for i in range (self._number_of_resto):
+            p.append(math.exp(-occupation[i])/z)
+
+
+        return np.random.choice(range(n), p=p)
+"""
