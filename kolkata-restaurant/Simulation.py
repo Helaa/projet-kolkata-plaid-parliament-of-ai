@@ -69,6 +69,7 @@ class Simulation:
         # creating resto dictionnary to speed up the searching process (when affecting clients)
         restoDict = dict(zip(goalStates, self.__restaurants))
         restaurants = self.__restaurants
+        self.__avg_of_occupied_resto = 0
 
         # creating team dictionnary, keys are players objects and value is the corresponding team
         # useful for statistics ( when serving a player, we need to know to which team he belongs to)
@@ -84,7 +85,7 @@ class Simulation:
         for day in range(x_days):
             # reset allowed positions that players can start in
             allowedStates = list(self.__original_allowedStates) # deep copy
-            print(len(allowedStates))
+            occupied_restos = 0 # how many restos have at least one client
 
             if day > 0:
                 print("Reseting ...")
@@ -146,6 +147,8 @@ class Simulation:
             for resto in restaurants:
                 try:
                     resto.random_serve()
+                    if len(resto.get_clients()) > 0:
+                        occupied_restos += 1
                     # print(resto, end = ' ')
                     # print("has %d clients but served only the %s" %(len(resto.get_clients()),\
                     #                         resto.get_served_client()))
@@ -159,10 +162,13 @@ class Simulation:
                     gain_per_team[team_dict[player]] += player.get_gain()
 
             win_team = max(gain_per_team, key=gain_per_team.get)
+            self.__avg_of_occupied_resto += occupied_restos / len(restaurants)
             print("Winning team on the round %d is %s" % (day+1, win_team))
+            print("Occupied restos %d / %d " %(occupied_restos, len(restaurants)))
 
         self.__gain_per_team = gain_per_team
         self.__team_dict = team_dict
+        self.__avg_of_occupied_resto /= x_days
 
     def get_teams(self):
         return self.__teams
@@ -194,3 +200,5 @@ class Simulation:
         for team in self.__teams:
             print(team, end=' :\t')
             print(gain_per_team[team] / self.__x_days)
+
+        print("The mean of (means) occupied restos : ", self.__avg_of_occupied_resto)
