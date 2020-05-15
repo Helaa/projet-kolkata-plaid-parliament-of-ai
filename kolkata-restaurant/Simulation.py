@@ -81,6 +81,9 @@ class Simulation:
         # gain per team dictionnary
         gain_per_team = dict(zip(self.__teams, [0] * len(self.__teams)))
 
+        # teams record ( how many times each team has won )
+        teams_record = dict(zip(self.__teams, [0] * len(self.__teams)))
+
         # playing the game x_days
         for day in range(x_days):
             # reset allowed positions that players can start in
@@ -162,13 +165,16 @@ class Simulation:
                     gain_per_team[team_dict[player]] += player.get_gain()
 
             win_team = max(gain_per_team, key=gain_per_team.get)
-            self.__avg_of_occupied_resto += occupied_restos / len(restaurants)
+            teams_record[win_team] += 1
             print("Winning team on the round %d is %s" % (day+1, win_team))
+            
+            self.__avg_of_occupied_resto += occupied_restos / len(restaurants)
             print("Occupied restos %d / %d " %(occupied_restos, len(restaurants)))
 
         self.__gain_per_team = gain_per_team
         self.__team_dict = team_dict
         self.__avg_of_occupied_resto /= x_days
+        self.__teams_record = teams_record
 
     def get_teams(self):
         return self.__teams
@@ -201,4 +207,11 @@ class Simulation:
             print(team, end=' :\t')
             print(gain_per_team[team] / self.__x_days)
 
-        print("The mean of (means) occupied restos : ", self.__avg_of_occupied_resto)
+        print("\n\nPercentage of winning for each team")
+        for team in self.__teams:
+            print(team, end=' :\t')
+            print("%d / %d -> %d%%" % (self.__teams_record[team], self.__x_days, \
+                                        (self.__teams_record[team] / self.__x_days) * 100 ))
+        
+
+        print("\n\nThe mean of (means) occupied restos : ", self.__avg_of_occupied_resto)
