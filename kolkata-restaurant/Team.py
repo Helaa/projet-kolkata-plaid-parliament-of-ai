@@ -19,6 +19,8 @@ class Team:
             strategy = args[1]
             self.__init_from_number(number_of_players, strategy)
 
+        self.__gain = 0
+
     def __init_from_players(self, players : list()):
         assert len(players) > 0
 
@@ -52,9 +54,20 @@ class Team:
     def get_strategy(self) -> Strategy:
         return self.__players[0].get_strategy()
 
+    def add_gain(self, g=1):
+        assert int(g) > 0
+
+        for player in self.__players:
+            player.add_gain(g)
+
+        self.__gain += g
+
+    def get_gain(self) -> int:
+        return self.__gain
+
     def __iter__(self):
         return iter(self.__players)
 
     def __str__(self):
-        return "Team that has " + str(len(self.__players)) + " playing with " + \
-                self.__players[0].get_strategy() if len(self.__players) > 0 else "Empty team"
+        return "Team that has " + str(len(self.__players)) + " players using " + \
+                self.get_strategy().__str__() if len(self.__players) > 0 else "Empty team"

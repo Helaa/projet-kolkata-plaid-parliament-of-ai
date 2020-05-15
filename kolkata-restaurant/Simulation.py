@@ -47,28 +47,53 @@ class Simulation:
         self.__game.fps = fps
         self.__speed = fps
 
-    def play(self, x_days : int):
+    def play(self, x_days : int, no_rest=False): 
+        # no_rest just for not slowing down the game when we reset it
         assert int(x_days) > 0
+        assert isinstance(no_rest, bool)
+
+        self.__x_days = x_days
 
         game = self.__game
+        nbLignes, nbColonnes = game.spriteBuilder.rowsize, game.spriteBuilder.colsize
         goalStates = [o.get_rowcol() for o in game.layers['ramassable']]
-        restoDict = dict(zip(goalStates, self.__restaurants))
-        restaurants = self.__restaurants
 
+        # constructing all players list
         players = []
         for team in self.__teams:
             players.extend(team.get_players())
 
         nbPlayers = len(players)
         iterations = self.__iterations_per_game
+        
+        # creating resto dictionnary to speed up the searching process (when affecting clients)
+        restoDict = dict(zip(goalStates, self.__restaurants))
+        restaurants = self.__restaurants
 
+        # creating team dictionnary, keys are players objects and value is the corresponding team
+        # useful for statistics ( when serving a player, we need to know to which team he belongs to)
+        team_dict = dict()
+        for team in self.__teams:
+            for player in team:
+                team_dict[player] = team
+
+        # gain per team dictionnary
+        gain_per_team = dict(zip(self.__teams, [0] * len(self.__teams)))
+
+        # playing the game x_days
         for day in range(x_days):
-            allowedStates = self.__original_allowedStates
+            # reset allowed positions that players can start in
+            allowedStates = list(self.__original_allowedStates) # deep copy
+            print(len(allowedStates))
 
             if day > 0:
                 print("Reseting ...")
-                game.fps = 5
+                # just to see that the game is restarting
+
+                if not no_rest:
+                    game.fps = 5
                 
+                # reseting the players, and placing them in the original positions
                 i = 0
                 for team in self.__teams:
                     for player in team:
@@ -78,9 +103,14 @@ class Simulation:
                         game.mainiteration()
                         i += 1
 
+                # reseting restos
+                for resto in restaurants:
+                    resto.reset()
+
+            # return to the simulation speed
             self.set_speed(self.__speed)
 
-            # In the beginning, randomly place the players
+            # randomly place the players
             for team in self.__teams:
                 for player in team:
                     x,y = random.choice(allowedStates)
@@ -92,14 +122,14 @@ class Simulation:
                     
             # run the game for maximum x_iterations
             for i in range(iterations):
-                for j in range(nbPlayers): # on fait bouger chaque joueur séquentiellement
+                # moving players sequentially 
+                for j in range(nbPlayers): 
 
                     if players[j].reached_goal():
                         continue
 
                     else:
-                        #print("Player %d (strategy = %s) is going to %d" % (j, players[j].get_strategy(),players[j].get_target()))
-                        row, col = players[j].next_step() # nbLignes = nbColonnes = 20
+                        row, col = players[j].next_step(nbLignes, nbColonnes)
                         game.mainiteration()
                         
                         if players[j].reached_goal():
@@ -109,29 +139,58 @@ class Simulation:
 
                             # add the current player to the correspong restaurant located at (row, col)
                             restoDict[(row, col)].add_client(players[j])
-                            print ("Le joueur ", j, " est à ", restoDict[(row, col)])
+                            # print ("Le joueur ", j, " est à ", restoDict[(row, col)])
 
                             break
 
             for resto in restaurants:
                 try:
                     resto.random_serve()
-                    print(resto, end = ' ')
-                    print("has %d clients but served only the %s" %(len(resto.get_clients()),\
-                                            resto.get_served_client()))
+                    # print(resto, end = ' ')
+                    # print("has %d clients but served only the %s" %(len(resto.get_clients()),\
+                    #                         resto.get_served_client()))
                 except AlreadyServedException:
-                    print(resto, end = ' ')
-                    print(" already served a client")
+                    pass
+                    # print(resto, end = ' ')
+                    # print(" already served a client")
 
             for player in players:
                 if player.ate():
-                    print(player, end = ' ')
-                    print(" has eaten ")
+                    gain_per_team[team_dict[player]] += player.get_gain()
 
-            for resto in restaurants:
-                resto.reset()
+            win_team = max(gain_per_team, key=gain_per_team.get)
+            print("Winning team on the round %d is %s" % (day+1, win_team))
 
-            for player in players:
-                if player.ate():
-                    print(player, end = ' ')
-                    print(" has eaten ")
+        self.__gain_per_team = gain_per_team
+        self.__team_dict = team_dict
+
+    def get_teams(self):
+        return self.__teams
+
+    def get_all_players(self):
+        players = []
+        for team in self.__teams:
+            players.extend(team.get_players())
+
+        return players
+
+    def summary(self):
+        gain_per_team = self.__gain_per_team
+        win_team = max(gain_per_team, key=gain_per_team.get)
+
+        print("\nAfter playing for %d rounds, the winning team is %s with an overal gain of %d\n"
+             %(self.__x_days, win_team, gain_per_team[win_team]))
+
+        print("\nOther teams stats: ")
+        print("Team                                      :          Gain\n")
+        for team in self.__teams:
+            if team == win_team:
+                continue
+
+            print(team, end='\t')
+            print(gain_per_team[team])
+
+        print("\n\nAvg gain per round for each team")
+        for team in self.__teams:
+            print(team, end=' :\t')
+            print(gain_per_team[team] / self.__x_days)

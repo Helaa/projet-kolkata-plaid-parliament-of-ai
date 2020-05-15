@@ -21,6 +21,7 @@ from Strategies import *
 from AdaptedPlayer import *
 from Restaurant import *
 from Simulation import *
+from Team import *
     
 # ---- ---- ---- ---- ---- ----
 # ---- Main                ----
@@ -78,6 +79,7 @@ def main():
     
     # creating one Strategy object  
     nearestStrategy = LOR(restaurants)
+    randomStrategy = RandomStrategy(restaurants)
 
     # Converting players to AdaptedPlayers and creating teams
     for j in range(nbPlayers // 2):
@@ -87,7 +89,7 @@ def main():
     team_a = Team(players[: nbPlayers // 2])
 
     for j in range(nbPlayers // 2, nbPlayers):
-        players[j] = AdaptedPlayer(players[j], initStates[j], nearestStrategy, goalStates, wallStates)
+        players[j] = AdaptedPlayer(players[j], initStates[j], randomStrategy, goalStates, wallStates)
         game.mainiteration()
 
     team_b = Team(players[nbPlayers // 2: ])
@@ -96,8 +98,9 @@ def main():
     
     # Creating a simulation that will play the game multiple times
     s = Simulation(game, restaurants, teams, allowedStates, initStates, iterations)
-    s.set_speed(200)
-    s.play(4)
+    s.set_speed(2000)
+    s.play(1000, no_rest=True) # no_rest just for not slowing down the game when we reset it
+    s.summary()
 
     pygame.quit()
 
