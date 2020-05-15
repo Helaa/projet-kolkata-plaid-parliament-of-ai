@@ -28,6 +28,10 @@ class Restaurant:
         self.__clients = [] # a list of AdaptedPlayer (clients that reached this resto)
         self.__served_client = None # which client to serve
 
+    def reset(self):
+        self.__clients = [] # a list of AdaptedPlayer (clients that reached this resto)
+        self.__served_client = None # which client to serve
+
     def get_coord(self):
         return self.__coord
 

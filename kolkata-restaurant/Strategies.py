@@ -95,6 +95,7 @@ class NRS(Strategy):
 
 class LOR(NRS):
     """
+        Least nearest Occupied Resto
         Hybrid strategy: first get to the nearest resto, then switch to the least occupied
         restos
     """
@@ -105,9 +106,8 @@ class LOR(NRS):
         """
             @params:
                 current_player_pos: player's coord in the map ( list or tuple )
-                goalStates: list of all restos coords (list of tuples or lists)
 
-            returns the less occupied restaurant
+            returns the nearest less occupied restaurant
         """
         assert len(current_player_pos) == 2
 
@@ -131,19 +131,3 @@ class LOR(NRS):
 
     def __repr__(self) -> str:
         return self.__str__() + " Number of Restos is " + str(self._number_of_resto)
-""""
-class StocasticChoice(Strategy):
-
-    def choose_resto(self, current_player_pos=None, distance=a_star.euc_dist) -> Restaurant:
-        z=0
-        for i in range(self._number_of_resto):
-            # Z is the factor of choice in Stochastic agent
-            z += math.exp(-occupation[i])
-
-        p = []
-        for i in range (self._number_of_resto):
-            p.append(math.exp(-occupation[i])/z)
-
-
-        return np.random.choice(range(n), p=p)
-"""

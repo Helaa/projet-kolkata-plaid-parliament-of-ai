@@ -11,15 +11,19 @@ class AdaptedPlayer():
         assert isinstance(player, Player)
 
         self.__player = player
-        self.__set_starting_position(starting_position)
-        self.__set_strategy(strategy)
         self.__goalStates = goalStates
         self.__wallStates = wallStates
+        self.set_starting_position(starting_position)
+        self.set_strategy(strategy)
 
         self.__reached_target = False
         self.__gain = 0
 
-    def __set_starting_position(self, starting_position):
+    def reset(self):
+        self.__reached_target = False
+        self.__gain = 0
+
+    def set_starting_position(self, starting_position):
         assert len(starting_position) == 2
         assert int(starting_position[0]) >= 0 
         assert int(starting_position[1]) >= 0
@@ -28,7 +32,7 @@ class AdaptedPlayer():
         self.__current_position = starting_position
         self.__player.set_rowcol(starting_position[0], starting_position[1])
 
-    def __set_strategy(self, strategy):
+    def set_strategy(self, strategy):
         from Strategies import Strategy
         assert isinstance(strategy, Strategy)
 
